@@ -62,6 +62,8 @@
     <Compile Include="TokenFunctions.fs" />
     <Compile Include="CompilerTypes.fs" />
     <Compile Include="CompilerFunctions.fs" />
+    <Compile Include="SerializerTypes.fs" />
+    <Compile Include="SerializerFunctions.fs" />
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Program.fs" />
     <None Include="App.config" />

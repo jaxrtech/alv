@@ -6,7 +6,7 @@ open FParsecTrace
 // TODO: The entire `P<_>` seems a bit like a code smell considering that is coming from
 //       `FParsecTrace` and we might want to swap it out later
 
-module Core =
+module private Core =
     let private isAsciiIdStart c =
         isAsciiLetter c || c = '_'
 
@@ -21,7 +21,7 @@ module Core =
 
     let alvtype: Parser<Ast.AlvType, 'a> = ident
 
-module Aliases =
+module private Aliases =
     open Core
 
     let str = pstring
@@ -40,7 +40,7 @@ module Aliases =
 
     let name_ws = name .>> ws
 
-module Expression =
+module private Expression =
     open Core
     open Aliases
     open Ast
@@ -89,7 +89,7 @@ module Expression =
     let parser = x.expr  <!> "expr"
 
 
-module VariableDecl =
+module private VariableDecl =
     open Core
     open Aliases
     open Ast
@@ -115,7 +115,7 @@ module VariableDecl =
     let parser = x.parser  <!> "var_decl"
 
 
-module VariableAssignment =
+module private VariableAssignment =
     open Core
     open Aliases
     open Ast
@@ -130,7 +130,7 @@ module VariableAssignment =
     let parser = x.parser  <!> "var_assign"
 
 
-module Statements =
+module private Statements =
     open Core
     open Aliases
 
@@ -143,7 +143,7 @@ module Statements =
     let block = between (str_ws "{") (str_ws "}") (sepEndBy statement (end_of_statement))  <!> "block"
 
 
-module FunctionDecl =
+module private FunctionDecl =
     open Core
     open Aliases
     open Ast
@@ -167,7 +167,7 @@ module FunctionDecl =
         let keyword = str_ws1 "fn"
 
         let parser =
-            pipe4 (keyword >>. name_ws) paramList (ws >>. return_type) Statements.block
+            pipe4 (keyword >>. name_ws) paramList (ws >>. return_type .>> ws) Statements.block
                 (fun name parameters return_type block ->
                     { Name = name
                       Parameters = parameters
@@ -177,8 +177,7 @@ module FunctionDecl =
     let parser = x.parser  <!> "fn_decl"
 
 
-module CompilationUnit =
+module private CompilationUnit =
     let parser = (sepEndBy FunctionDecl.parser spaces) .>> eof
-
 
 let parser = CompilationUnit.parser

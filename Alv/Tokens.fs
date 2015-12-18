@@ -51,5 +51,7 @@
 
 [<Literal>] let lparen = 0x10uy
 [<Literal>] let rparen = 0x11uy
+[<Literal>] let newline = 0x3Fuy
+[<Literal>] let colon = 0x3Euy
 
 

@@ -20,13 +20,6 @@ type StackTracker = {
 }
 
 type CompilationContext = {
-    Status: ParserResult<Stream, unit>
     TokenStream: Stream
     Stack: StackTracker
-}
-
-type ProgramWriter = {
-    Name: string
-    TokenStream: Stream
-    OutputStream: Stream
 }
