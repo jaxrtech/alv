@@ -1,0 +1,4 @@
+fn main() -> void {
+  val x = 10
+  var y = 20
+}

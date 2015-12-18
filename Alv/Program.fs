@@ -1,83 +1,50 @@
-﻿open FParsec
+﻿module Alv.Program
 
-let test p str =
-    match run p str with
-    | Success(result, _, _)   -> printfn "Success: %A" result
-    | Failure(errorMsg, _, _) -> printfn "Failure: %s" errorMsg
+open System
+open FParsec
+open FParsecTrace
+open Alv
+open Alv.CompilerFunctions
 
-let testString = 
-    "fn main()->void{\n\
-       val x = 10; val y = 20\n\
-       val z = (x + y) * 5 + 2\n\
-       return z\n\
-     }"
+let userState = { Debug = { Message = ""; Indent = 0 } }
+let path = "Tests\simple.alv"
+let encoding = System.Text.Encoding.UTF8
 
-module Core =
-    let private isAsciiIdStart c =
-        isAsciiLetter c || c = '_'
+let test parser runner isDebugEnabled =
+    match runner parser with
+        | Success (result, us, _) ->
+            printfn "Success: %A" result
+            if isDebugEnabled then
+                printfn "Debug:\n\n%s" us.Debug.Message
 
-    let private isAsciiIdContinue c =
-        isAsciiLetter c || isDigit c || c = '_'
+            Some result
 
-    let ident: Parser<string, 'a> =
-        identifier (IdentifierOptions(isAsciiIdStart    = isAsciiIdStart,
-                                      isAsciiIdContinue = isAsciiIdContinue))
+        | Failure (msg, _, us)   ->
+            printfn "Failure: %A\n" msg
+            if isDebugEnabled then 
+                printfn "Debug:\n\n%s" us.Debug.Message
 
-    let str = pstring
+            None
 
-module Aliases =
-    open Core
+let rec tryRun () =
+    let run parser = runParserOnFile parser userState path encoding
+    
+    let ast = test Parser.parser run true
+    
+    ast
+    |> Option.map compile
+    |> Option.map (fun result ->
+        result.)
 
-    let name: Parser<string, 'a> = ident
-
-    let alvtype: Parser<string, 'a> = ident
-
-module Function =
-    open Core
-    open Aliases
-
-    // just for indirection if we need it later
-    type AlvType = string
-
-    type Parameter = { Name: string; Type: AlvType }
-
-    type Signature = { Name: string; Parameters: Parameter list; ReturnType: AlvType option }
-
-    let parameter =
-        let colon = spaces .>> str ":" .>> spaces
-
-        pipe3 name colon alvtype
-            (fun name _ atype -> { Name = name; Type = atype})
-
-    let parameters =
-        sepBy parameter (str ",")
-
-    let alvreturn =
-        opt ((pstring "->" .>> spaces) >>. alvtype)
-
-    let signature =
-        let paramList = between (str "(") (str ")") parameters
-
-        pipe3 (name .>> spaces) paramList (spaces >>. alvreturn)
-            (fun name parameters alvreturn ->
-                { Name = name;
-                  Parameters = parameters;
-                  ReturnType = alvreturn })
-
-    let keyword = str "fn"
-
-    let header = keyword .>> spaces1 >>. signature
-
-    let block = between (str "{") (str "}") spaces // TODO
-
-    let parser = (header .>> spaces) .>>. block
-
-module CompilationUnit =
-    let parser = sepBy Function.parser spaces
+    let command = Console.ReadLine()
+    if (command.StartsWith("q")) then ()
+    else
+        let sep = String.replicate Console.WindowWidth "="
+        printfn "\n\n%s%s\n\n" sep sep
+        tryRun ()
 
 [<EntryPoint>]
 let main argv =
-    test CompilationUnit.parser testString
+    tryRun()
 
-    System.Console.ReadLine() |> ignore
     0

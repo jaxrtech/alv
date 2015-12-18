@@ -54,6 +54,14 @@
   </Choose>
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
+    <Compile Include="FParsecTrace.fs" />
+    <Compile Include="Ast.fs" />
+    <Compile Include="AstFunctions.fs" />
+    <Compile Include="Parser.fs" />
+    <Compile Include="Tokens.fs" />
+    <Compile Include="TokenFunctions.fs" />
+    <Compile Include="CompilerTypes.fs" />
+    <Compile Include="CompilerFunctions.fs" />
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Program.fs" />
     <None Include="App.config" />
